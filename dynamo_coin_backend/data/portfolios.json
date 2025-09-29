@@ -1,0 +1,33 @@
+[
+  {
+    "Id": 0,
+    "Name": "Dynamo Coin Portfolio",
+    "Items": [
+      {
+        "Symbol": "ETH",
+        "Amount": 1000,
+        "PurchasePriceUsd": 123.14
+      },
+      {
+        "Symbol": "RENDER",
+        "Amount": 50000,
+        "PurchasePriceUsd": 1.36
+      },
+      {
+        "Symbol": "SOL",
+        "Amount": 100000,
+        "PurchasePriceUsd": 20.35
+      },
+      {
+        "Symbol": "AVAX",
+        "Amount": 50000,
+        "PurchasePriceUsd": 9.50
+      },
+      {
+        "Symbol": "TAO",
+        "Amount": 10000,
+        "PurchasePriceUsd": 50.0
+      }
+    ]
+  }
+]
