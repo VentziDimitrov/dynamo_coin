@@ -11,7 +11,6 @@ const CryptoPortfolioCalculator = () => {
   const [uploadError, setUploadError] = useState('');  
   const [refreshRate, setRefreshRate] = useState(5); 
   const [sentimentRunning, setSentimentRunning] = useState(false);
-  const [sentiment, setSentiment] = useState('');
 
   const REFRESH_OPTIONS = [
     { label: '1 min', value: 1 },
@@ -201,7 +200,6 @@ const CryptoPortfolioCalculator = () => {
                   formatChange={formatChange}
                   getChangeIcon={getChangeIcon}
                   onSentimentAnalyze={onSentimentAnalyze}
-                  sentiment={sentiment}
                 />
               </div>   
             </div>
@@ -484,14 +482,15 @@ const styles = {
   },
   assetAmount: {
     color: '#9ca3af',
-    fontSize: '14px'
+    fontSize: '18px'
   },
   assetValueContainer: {
     textAlign: 'right'
   },
   assetValue: {
     color: '#ffffff',
-    fontWeight: '600'
+    fontWeight: '600',
+    fontSize: 24
   },
   priceChange: {
     fontSize: '12px',

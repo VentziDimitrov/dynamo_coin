@@ -6,8 +6,9 @@ public class OpenAiService : IOpenAiService
 {
     
     private readonly OpenAIClient _client;
-    public OpenAiService(string apiKey)
+    public OpenAiService(IConfiguration config)
     {
+        string apiKey = config["OpenAI:ApiKey"] ?? throw new ArgumentNullException("OpenAI:ApiKey");
         _client = new OpenAIClient(apiKey);
     }
 

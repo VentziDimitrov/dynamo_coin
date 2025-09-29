@@ -14,15 +14,14 @@ public class PortfolioController : ControllerBase
     private List<PortfolioItem> _currentPortfolio = new();
     private IEnumerable<string> _symbolIds = Enumerable.Empty<string>();    
     private FileStorageManager _storage;
+    private readonly IOpenAiService _openAi;
 
-    private readonly OpenAiService _openAi;
-
-    public PortfolioController(ICoinLoreService coin, ILogger<PortfolioController> log, IConfiguration config)
+    public PortfolioController(ICoinLoreService coin, ILogger<PortfolioController> log, IOpenAiService openAi)
     {
         _coin = coin;
         _log = log;
         _storage = new FileStorageManager();
-        _openAi = new OpenAiService(config["OpenAI:ApiKey"] ?? throw new ArgumentNullException("OpenAI:ApiKey"));
+        _openAi = openAi;
         var cashed = _storage.GetPortfolioAsync().Result;
         _currentPortfolio = cashed.Items;
         var symbols = _currentPortfolio.Select(p => p.Symbol.ToUpperInvariant()).Distinct();

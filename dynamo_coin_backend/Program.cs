@@ -13,7 +13,7 @@ builder.Host.UseSerilog();
 // --- Services & DI ---
 builder.Services.AddHttpClient(); // used by our services
 builder.Services.AddScoped<ICoinLoreService, CoinLoreService>();
-//builder.Services.AddScoped<IOpenAiService, OpenAiService>();
+builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
 builder.Services.AddControllers();
 
