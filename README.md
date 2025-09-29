@@ -7,8 +7,6 @@ Backend: ASP.NET Core Web API (.NET 8)
 
 Frontend: React.js (Vite + Axios)
 
-Database: PostgreSQL (or local file option)
-
 AI Agent: OpenAI API integration for sentiment & news analysis
 
 How to setup: 
