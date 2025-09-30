@@ -156,9 +156,9 @@ const CryptoPortfolioCalculator = () => {
                 color: portfolio.totalChangeUsd >= 0 ? '#10b981' : '#ef4444'
               }}>
                 {portfolio.totalChangeUsd >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                <span>{portfolio.totalChangeUsd >= 0 ? '+' : ''}{portfolio.totalChangeUsd.toFixed(2)}%</span>
+                <span style={styles.summarySubTotalValue}>{portfolio.totalChangeUsd >= 0 ? '+' : ''}{portfolio.totalChangeUsd.toFixed(2)}%</span>
               </div>
-              <span style={styles.changeValue}>
+              <span style={styles.summarySubTotalChange}>
                 {portfolio.totalChangeUsd >= 0 ? '+' : ''}{formatCurrency(calculateTotalChangeForPortfolio)}
               </span>
             </div>
@@ -271,6 +271,8 @@ const styles = {
     gap: '20px',
     marginBottom: '32px'
   },
+  summarySubTotalValue: {fontSize: 16},
+  summarySubTotalChange: {fontSize: 16},
   summaryCard: {
     background: 'rgba(255, 255, 255, 0.95)',
     borderRadius: '16px',
@@ -421,7 +423,6 @@ const styles = {
     fontSize: '12px',
     color: '#64748b',
     marginTop: '4px',
-    textAlign: 'center'
   },
   analyzeButton: {
     display: 'flex',
