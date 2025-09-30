@@ -8,7 +8,7 @@ export function calculateChange (buyPrice, currentPrice) {
   export function calculateTotalValue (assets) {
     return assets.reduce((sum, asset) => {
       const amount = parseFloat(asset.amount);
-      const price = parseFloat(asset.price_current);
+      const price = parseFloat(asset.currentPriceUsd);
       if (!isNaN(amount) && !isNaN(price)) {
         return sum + (amount * price);
       }
@@ -19,7 +19,7 @@ export function calculateChange (buyPrice, currentPrice) {
   export function calculateTotalBuyValue (assets) {
     return assets.reduce((sum, asset) => {
       const amount = parseFloat(asset.amount);
-      const price = parseFloat(asset.price_buy);
+      const price = parseFloat(asset.buyPriceUsd);
       if (!isNaN(amount) && !isNaN(price)) {
         return sum + (amount * price);
       }
