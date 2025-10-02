@@ -1,11 +1,11 @@
 # Dynamo Coin Crypto Portfolio Tracker
 
 A full-stack web application for uploading your cryptocurrency portfolio, fetching live prices from Coinlore API
-and analyzing value & sentiment with OpenAI.
+, and analyzing value & sentiment with OpenAI.
 
 Backend: ASP.NET Core Web API (.NET 8)
 
-Frontend: React.js
+Frontend: React.js (Vite + Axios)
 
 AI Agent: OpenAI API integration for sentiment & news analysis
 
