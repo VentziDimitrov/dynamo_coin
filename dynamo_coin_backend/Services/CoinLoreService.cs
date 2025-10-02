@@ -10,7 +10,7 @@ public class CoinLoreService : ICoinLoreService
     private readonly ILogger<CoinLoreService> _log;
     private readonly CoinLoreScrapper _scrapper;
 
-    private Dictionary<string, string> map;    
+    private readonly Dictionary<string, string> _map;    
 
     /// <summary>
     /// Initializes a new instance of the CoinLoreService.
@@ -24,7 +24,7 @@ public class CoinLoreService : ICoinLoreService
         _http.BaseAddress = new Uri("https://api.coinlore.net/api/");
         _log = log;
         _scrapper = new CoinLoreScrapper();
-        map = new Dictionary<string, string>();        
+        _map = new Dictionary<string, string>();        
     }
 
     /// <summary>
@@ -36,7 +36,11 @@ public class CoinLoreService : ICoinLoreService
     public async Task<Dictionary<string, string>> MapSymbolsToIdsAsync(IEnumerable<string> symbols)
     {
         var needed = new HashSet<string>(symbols.Select(s => s.ToUpperInvariant()));
-        this.map = new Dictionary<string, string>();
+        if (_map != null)
+        {
+            _map?.Clear();
+        } 
+        
         int start = 0, limit = 100;
 
         while (needed.Count > 0)
@@ -50,7 +54,7 @@ public class CoinLoreService : ICoinLoreService
             {
                 if (needed.Contains(t.Symbol.ToUpperInvariant()))
                 {
-                    this.map[t.Symbol.ToUpperInvariant()] = t.Id;
+                    _map[t.Symbol.ToUpperInvariant()] = t.Id;
                     needed.Remove(t.Symbol.ToUpperInvariant());
                 }
             }
@@ -61,7 +65,7 @@ public class CoinLoreService : ICoinLoreService
             await Task.Delay(1000);
         }
 
-        return this.map;
+        return this._map;
     }
 
     /// <summary>
@@ -95,24 +99,22 @@ public class CoinLoreService : ICoinLoreService
     {
         _log.LogInformation("Fetching sentiment for {Coin}", coin);
         var url_daily = $"https://www.coinlore.com/coin/{coin}";
-        //Task.Delay(200).Wait();
+
         var html_daily = await _scrapper.GetHtmlAsync(url_daily);
         _log.LogInformation("Fetched daily analysis HTML, length={Length}", html_daily.Length);
-        //Task.Delay(200).Wait();
+      
         var analysis = _scrapper.ExtractAnalysis(html_daily);
-        //Task.Delay(200).Wait();
+
         var monthlyReturn = _scrapper.ExtractMonthlyReturn(html_daily).Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
-        //Task.Delay(200).Wait();
+    
         var url_prediction = $"https://www.coinlore.com/coin/{coin}/forecast/price-prediction";
         var prediction = _scrapper.ExtractPricePredition(url_prediction);
-        //Task.Delay(500).Wait();
 
-        var info = new CoinLoreInfo
+        return new CoinLoreInfo
         {
             TodayAnalysis = analysis,
             MonthlyReturns = monthlyReturn,
             Prediction = prediction
         };
-        return info;
     }
 }
