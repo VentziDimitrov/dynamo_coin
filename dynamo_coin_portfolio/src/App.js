@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, TrendingUp, TrendingDown, FileText, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { formatChange, formatCurrency, formatNumber } from './utils/formatHelper';
 import PortfolioApi from './portfolioApi';
 import PortfolioList from './components/PortfolioList';
 import { calculateTotalBuyValue, calculateTotalValue } from './utils/mathHelper';
+import RefreshRateSelect from './components/RefreshRateSelect';
+import PortfolioUpload from './components/PortfolioUpload';
+
 
 const CryptoPortfolioCalculator = () => {
   const [portfolio, setPortfolio] = useState({});
@@ -23,13 +26,13 @@ const CryptoPortfolioCalculator = () => {
   }, []);
 
   useEffect(() => {
-    async function onUpdate() {
+    async function onRefresh() {
       const portfolio = await PortfolioApi.refresh();
       //console.log("onUdate(): ", portfolio);
       localStorage.setItem('portfolio', JSON.stringify(portfolio));
       setPortfolio(portfolio);
     }
-    const interval = setInterval(onUpdate, refreshRate * 60 * 1000);
+    const interval = setInterval(onRefresh, refreshRate * 60 * 1000);
     return () => clearInterval(interval);
   }, [refreshRate]);
  
@@ -93,55 +96,20 @@ const CryptoPortfolioCalculator = () => {
             </div>
             <h1 style={styles.title}>Dynamo Coin Portfolio Calculator</h1>
           </div>
-          {fileUploaded && <div style={styles.refreshContainer}>
-            <label style={styles.refreshLabel}>Auto-refresh:</label>
-            <select 
-              value={refreshRate}
-              onChange={(e) => setRefreshRate(e.target.value)}
-              style={styles.refreshSelect}
-            >
-              <option value="1 min">1 min</option>
-              <option value="5 min">5 min</option>
-              <option value="15 min">15 min</option>
-              <option value="30 min">30 min</option>
-              <option value="1 h">1 h</option>
-            </select>
-          </div>}
+          {fileUploaded &&  <RefreshRateSelect 
+                              refreshRate={refreshRate}
+                              setRefreshRate={setRefreshRate}
+                              styles={styles}
+                            />}
         </div>
       </div>
 
       {!fileUploaded && (
-          <div style={styles.uploadCard}>
-            <div style={styles.uploadContent}>
-              <FileText style={styles.uploadIcon} />
-              <h3 style={styles.uploadTitle}>Upload Portfolio File</h3>
-              <p style={styles.uploadDescription}>
-                Upload a text file with your crypto assets. Each line should contain:
-                <br />
-                <code style={styles.formatExample}> AMOUNT|SYMBOL|PRICE</code>
-                <br />
-                Example: <code style={styles.formatExample}> 0.5|BTC|43000</code>
-              </p>
-              
-              <input
-                type="file"
-                accept=".txt"
-                onChange={handleFileUpload}
-                style={styles.fileInput}
-                id="file-upload"
+          <PortfolioUpload
+                handleFileUpload={handleFileUpload}
+                uploadError={uploadError}
+                styles={styles}
               />
-              <label htmlFor="file-upload" style={styles.uploadButton}>
-                <Upload style={styles.uploadButtonIcon} />
-                Choose File
-              </label>
-              
-              {uploadError && (
-                <div style={styles.errorMessage}>
-                  {uploadError}
-                </div>
-              )}
-            </div>
-          </div>
         )}
 {fileUploaded && portfolio.coins.length > 0 && (
       <div style={styles.mainContent}>
