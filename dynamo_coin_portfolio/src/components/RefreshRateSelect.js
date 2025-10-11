@@ -1,4 +1,9 @@
+import { useDispatch } from 'react-redux';
+
 const RefreshRateSelect = ({ refreshRate, setRefreshRate, styles }) => {
+  //Redux
+  const dispatch = useDispatch();
+
   const REFRESH_OPTIONS = [
       { label: '1 min', value: 1 },
       { label: '5 min', value: 5 },
@@ -10,7 +15,7 @@ const RefreshRateSelect = ({ refreshRate, setRefreshRate, styles }) => {
             <label style={styles.refreshLabel}>Auto-refresh:</label>
             <select 
               value={refreshRate}
-              onChange={(e) => setRefreshRate(e.target.value)}
+              onChange={(e) => dispatch(setRefreshRate(e.target.value))}
               style={styles.refreshSelect}
             >
               {REFRESH_OPTIONS.map(opt => (
