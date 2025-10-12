@@ -2,6 +2,19 @@
 # Backend (.NET / ASP.NET)
 # ------------------------
 
+#TO BE UNCOMMENT!
+# .gitignore
+#.env.local
+#.env.development.local
+#.env.production.local
+#.env.test.local
+
+# Keep these
+#!.env
+#!.env.development
+#!.env.production
+#!.env.test
+
 # Build output
 bin/
 obj/
@@ -63,20 +76,3 @@ frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-# Editor directories
-.idea/
-*.iml
-
-# ------------------------
-# OS / General
-# ------------------------
-
-# Mac
-.DS_Store
-
-# Windows
-Thumbs.db
-desktop.ini
-
-# Linux
-*~
