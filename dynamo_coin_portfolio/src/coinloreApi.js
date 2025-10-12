@@ -1,6 +1,6 @@
-// coinloreApi.js
+import config from './config/config'
 
-const BASE_URL = 'https://api.coinlore.net/api/';
+const BASE_URL = config.coinloreBaseUrl;
 
 /**
  * Fetches coin list from CoinLore API.

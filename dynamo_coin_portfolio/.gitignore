@@ -2,6 +2,19 @@
 # Backend (.NET / ASP.NET)
 # ------------------------
 
+#TO BE UNCOMMENT!
+# .gitignore
+#.env.local
+#.env.development.local
+#.env.production.local
+#.env.test.local
+
+# Keep these
+#!.env
+#!.env.development
+#!.env.production
+#!.env.test
+
 # Build output
 bin/
 obj/
@@ -20,22 +33,6 @@ out/
 # Logs
 *.log
 
-# Dotnet specific
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-# NuGet
-*.nupkg
-*.snupkg
-*.nuspec
-*.dll
-*.exe
-*.dbmdl
-*.bak
-
-# Entity Framework migrations snapshots
-*Migrations/
 
 # Secrets
 secrets.json
@@ -49,6 +46,7 @@ appsettings.*.local.json
 node_modules/
 dist/
 .vite/
+package-lock.json
 
 # Debug logs
 npm-debug.log*
@@ -63,20 +61,3 @@ frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-# Editor directories
-.idea/
-*.iml
-
-# ------------------------
-# OS / General
-# ------------------------
-
-# Mac
-.DS_Store
-
-# Windows
-Thumbs.db
-desktop.ini
-
-# Linux
-*~
