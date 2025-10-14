@@ -5,6 +5,6 @@ scrapping live prices and analyses from Coinlore and analyzing value & sentiment
 
 Backend: ASP.NET Core Web API (.NET 8)
 
-Frontend: React.js 
+Frontend: React.js / Redux
 
 AI Agent: OpenAI API integration for sentiment & news analysis
