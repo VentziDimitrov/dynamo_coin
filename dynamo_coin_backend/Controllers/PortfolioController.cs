@@ -9,38 +9,25 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class PortfolioController : ControllerBase
 {
-    private readonly ICoinLoreService _coin;
-    private readonly ILogger<PortfolioController> _log;
+    private readonly ICoinLoreService _coinlore;
+    private readonly ILogger<PortfolioController> _logger;
     private List<PortfolioItem> _currentPortfolio = new();
-    private IEnumerable<string> _symbolIds = Enumerable.Empty<string>();    
-    private FileStorageManager _storage;
+    private IEnumerable<string> _symbolIds = Enumerable.Empty<string>();
+    private ICoinRepository _coinRepository;
     private readonly IOpenAiService _openAi;
 
-    public PortfolioController(ICoinLoreService coin, ILogger<PortfolioController> log, IOpenAiService openAi)
+    public PortfolioController(
+        ICoinLoreService coinlore,
+        ILogger<PortfolioController> logger,
+        IOpenAiService openAi,
+        ICoinRepository coinRepository)
     {
-        _coin = coin;
-        _log = log;
-        _storage = new FileStorageManager();
+        _coinlore = coinlore;
+        _logger = logger;
+        _coinRepository = coinRepository;
         _openAi = openAi;
 
-        try
-        {
-            var cashed = _storage.GetPortfolioAsync().GetAwaiter().GetResult();
-            _currentPortfolio = cashed?.Items ?? new List<PortfolioItem>();
-
-            if (_currentPortfolio.Any())
-            {
-                var symbols = _currentPortfolio.Select(p => p.Symbol.ToUpperInvariant()).Distinct();
-                var map = _coin.MapSymbolsToIdsAsync(symbols).GetAwaiter().GetResult();
-                this._symbolIds = map?.Values.Distinct() ?? Enumerable.Empty<string>();
-            }
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, "Failed to load portfolio during initialization");
-            _currentPortfolio = new List<PortfolioItem>();
-            _symbolIds = Enumerable.Empty<string>();
-        }
+        _initializePortfolio();
     }
 
     /// <summary>
@@ -52,23 +39,23 @@ public class PortfolioController : ControllerBase
     {
         try
         {
-            _log.LogInformation("Refreshing portfolio...");
+            _logger.LogInformation("Refreshing portfolio...");
 
             if (!_currentPortfolio.Any())
             {
-                _log.LogWarning("No portfolio items to refresh");
+                _logger.LogWarning("No portfolio items to refresh");
                 return BadRequest("Portfolio is empty. Please upload a portfolio file first.");
             }
 
             var result = await _calculatePortfolio();
 
-            _log.LogInformation("Computed portfolio: total={Total} change={Change}", result.TotalValueUsd, result.TotalChangeUsd);
+            _logger.LogInformation("Computed portfolio: total={Total} change={Change}", result.TotalValueUsd, result.TotalChangeUsd);
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Failed to refresh portfolio");
+            _logger.LogError(ex, "Failed to refresh portfolio");
             return StatusCode(500, new { error = "Failed to refresh portfolio", message = ex.Message });
         }
     }
@@ -88,7 +75,7 @@ public class PortfolioController : ControllerBase
                 return BadRequest("No file provided or file is empty");
             }
 
-            _log.LogInformation("Received file {FileName}", file.FileName);
+            _logger.LogInformation("Received file {FileName}", file.FileName);
             var tempPortfolio = new List<PortfolioItem>();
             var lineNumber = 0;
 
@@ -107,7 +94,7 @@ public class PortfolioController : ControllerBase
                     }
                     catch (Exception ex)
                     {
-                        _log.LogError(ex, "Failed to parse line {LineNumber}: {Line}", lineNumber, line);
+                        _logger.LogError(ex, "Failed to parse line {LineNumber}: {Line}", lineNumber, line);
                         return BadRequest(new { error = $"Invalid format at line {lineNumber}", line, message = ex.Message });
                     }
                 }
@@ -118,14 +105,14 @@ public class PortfolioController : ControllerBase
                 return BadRequest("File contains no valid portfolio items");
             }
 
-            _log.LogInformation("Parsed {Count} portfolio items", tempPortfolio.Count);
+            _logger.LogInformation("Parsed {Count} portfolio items", tempPortfolio.Count);
 
             var symbols = tempPortfolio.Select(p => p.Symbol.ToUpperInvariant()).Distinct();
-            var map = await _coin.MapSymbolsToIdsAsync(symbols);
+            var map = await _coinlore.MapSymbolsToIdsAsync(symbols);
 
             if (map == null || !map.Any())
             {
-                _log.LogError("Failed to map symbols to IDs");
+                _logger.LogError("Failed to map symbols to IDs");
                 return StatusCode(500, "Failed to map cryptocurrency symbols");
             }
 
@@ -144,14 +131,14 @@ public class PortfolioController : ControllerBase
                 }).ToList()
             };
 
-            await this._storage.SaveAsync(new List<Portfolio> { portfolio });
+            await _coinRepository.UpdateCoinAsync(portfolio.Items.First()); //_storage.SavePortfolioAsync(portfolio);
 
-            _log.LogInformation("Computed portfolio: total={Total} change={Change}", result.TotalValueUsd, result.TotalChangeUsd);
+            _logger.LogInformation("Computed portfolio: total={Total} change={Change}", result.TotalValueUsd, result.TotalChangeUsd);
             return Ok(result);
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Failed to upload portfolio file");
+            _logger.LogError(ex, "Failed to upload portfolio file");
             return StatusCode(500, new { error = "Failed to process portfolio file", message = ex.Message });
         }
     }
@@ -166,8 +153,8 @@ public class PortfolioController : ControllerBase
                 return BadRequest("Coin parameter is required");
             }
 
-            _log.LogInformation("Getting sentiment for {Coin}", coin);
-            var result = await _coin.GetCoinSentimentAsync(coin);
+            _logger.LogInformation("Getting sentiment for {Coin}", coin);
+            var result = await _coinlore.GetCoinSentimentAsync(coin);
 
             if (result == null)
             {
@@ -182,7 +169,7 @@ public class PortfolioController : ControllerBase
             };
 
             var analysis = await _openAi.AnalyzeAsync(coin, dataToAnalyze.TodayAnalysis, string.Join(",", dataToAnalyze.MonthlyReturns), dataToAnalyze.Prediction);
-            _log.LogInformation("OpenAI analysis result: {Analysis}", analysis);
+            _logger.LogInformation("OpenAI analysis result: {Analysis}", analysis);
 
             return Ok(new
             {
@@ -191,24 +178,54 @@ public class PortfolioController : ControllerBase
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Failed to analyze coin {Coin}", coin);
+            _logger.LogError(ex, "Failed to analyze coin {Coin}", coin);
             return StatusCode(500, new { error = "Failed to analyze coin", message = ex.Message });
         }
     }
 
-     /// <summary>
+    private async void _initializePortfolio()
+    {
+        try
+        {
+            var cashed = await _coinRepository.GetAllCoinsAsync(); //_storage.GetPortfolioAsync().GetAwaiter().GetResult();
+            if (cashed == null || !cashed.Any())
+            {
+                _logger.LogWarning("No cached portfolio items found during initialization");
+                _currentPortfolio = new List<PortfolioItem>();
+                _symbolIds = Enumerable.Empty<string>();
+                return;
+            }
+            _logger.LogInformation("Loaded {Count} cached portfolio items", cashed?.Count() ?? 0);
+            _currentPortfolio = cashed?.ToList() ?? new List<PortfolioItem>();
+
+            if (_currentPortfolio.Any())
+            {
+                var symbols = _currentPortfolio.Select(p => p.Symbol.ToUpperInvariant()).Distinct();
+                var map = _coinlore.MapSymbolsToIdsAsync(symbols).GetAwaiter().GetResult();
+                this._symbolIds = map?.Values.Distinct() ?? Enumerable.Empty<string>();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load portfolio during initialization");
+            _currentPortfolio = new List<PortfolioItem>();
+            _symbolIds = Enumerable.Empty<string>();
+        }
+    }
+
+    /// <summary>
     /// Download newest crypto data and calculates the current portfolio values and changes.
     /// </summary>
     /// <returns>Calculated portfolio data.</returns>
     private async Task<PortfolioResult> _calculatePortfolio()
     {
-        _log.LogInformation("{CountIds} unique ids", this._symbolIds);
+        _logger.LogInformation("{CountIds} unique ids", this._symbolIds);
 
-        var tickers = await _coin.GetTickersByIdsAsync(this._symbolIds);
+        var tickers = await _coinlore.GetTickersByIdsAsync(this._symbolIds);
 
         if (tickers == null || !tickers.Any())
         {
-            _log.LogWarning("No tickers returned from API");
+            _logger.LogWarning("No tickers returned from API");
             throw new InvalidOperationException("Failed to retrieve ticker data");
         }
 
@@ -220,25 +237,25 @@ public class PortfolioController : ControllerBase
 
             if (ticker == null)
             {
-                _log.LogWarning("No ticker found for symbol {Symbol}", symbol);
+                _logger.LogWarning("No ticker found for symbol {Symbol}", symbol);
                 continue;
             }
 
             if (!decimal.TryParse(ticker.Price_usd, NumberStyles.Any, CultureInfo.InvariantCulture, out var price))
             {
-                _log.LogWarning("Failed to parse price for {Symbol}: {Price}", symbol, ticker.Price_usd);
+                _logger.LogWarning("Failed to parse price for {Symbol}: {Price}", symbol, ticker.Price_usd);
                 continue;
             }
 
             if (!decimal.TryParse(ticker.Percent_change_24h, NumberStyles.Any, CultureInfo.InvariantCulture, out var change24h))
             {
-                _log.LogWarning("Failed to parse 24h change for {Symbol}: {Change}", symbol, ticker.Percent_change_24h);
+                _logger.LogWarning("Failed to parse 24h change for {Symbol}: {Change}", symbol, ticker.Percent_change_24h);
                 change24h = 0;
             }
 
             if (!decimal.TryParse(ticker.Percent_change_7d, NumberStyles.Any, CultureInfo.InvariantCulture, out var change7d))
             {
-                _log.LogWarning("Failed to parse 7d change for {Symbol}: {Change}", symbol, ticker.Percent_change_7d);
+                _logger.LogWarning("Failed to parse 7d change for {Symbol}: {Change}", symbol, ticker.Percent_change_7d);
                 change7d = 0;
             }
 
@@ -263,7 +280,7 @@ public class PortfolioController : ControllerBase
 
         if (!result.Coins.Any())
         {
-            _log.LogWarning("No coins processed successfully");
+            _logger.LogWarning("No coins processed successfully");
             return result;
         }
 
@@ -317,4 +334,6 @@ public class PortfolioController : ControllerBase
             PurchasePriceUsd = purchase
         };
     }
+
+    
 }

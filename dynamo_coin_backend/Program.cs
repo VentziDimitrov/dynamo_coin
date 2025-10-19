@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,11 @@ builder.Host.UseSerilog();
 builder.Services.AddHttpClient(); // used by our services
 builder.Services.AddScoped<ICoinLoreService, CoinLoreService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();
+
+builder.Services.AddScoped<ICoinRepository, CoinRepository>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DynamoCoinDBConnection")));
 
 builder.Services.AddControllers();
 
