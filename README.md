@@ -8,7 +8,7 @@ Analyzing value & sentiment with OpenAI
 
 ================================================
 
-Backend: ASP.NET Core Web API (.NET 8)
+Backend: ASP.NET Core Web API (.NET 8), MSSQL and EF
 
 Frontend: React.js / Redux
 
