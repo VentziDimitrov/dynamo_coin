@@ -15,7 +15,7 @@ builder.Host.UseSerilog();
 builder.Services.AddHttpClient(); // used by our services
 builder.Services.AddScoped<ICoinLoreService, CoinLoreService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();
-
+builder.Services.AddScoped<IOpenAiServiceAlternative, OpenAiServiceAlternative>();
 builder.Services.AddScoped<ICoinRepository, CoinRepository>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -23,7 +23,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddControllers();
 
-// Allow Vite dev server origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>

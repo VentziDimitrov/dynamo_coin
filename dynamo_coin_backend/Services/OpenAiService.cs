@@ -66,9 +66,9 @@ public class OpenAiService : IOpenAiService
         var chatClient = _client.GetChatClient("gpt-4o-mini");
         ChatCompletionOptions options = new ChatCompletionOptions
         {
-            Temperature = 0.2f, // Controls randomness (0 = deterministic)
+            Temperature = 0.2f, 
             MaxOutputTokenCount = 500,
-            TopP = 1.0f,        // Top 1            
+            TopP = 1.0f,           
         };
 
         var result = await chatClient.CompleteChatAsync([new SystemChatMessage(prompt)], options);
