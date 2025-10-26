@@ -18,8 +18,17 @@ builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 builder.Services.AddScoped<IOpenAiServiceAlternative, OpenAiServiceAlternative>();
 builder.Services.AddScoped<ICoinRepository, CoinRepository>();
 
+// Build connection string with password from configuration/secrets
+var connectionString = builder.Configuration.GetConnectionString("DynamoCoinDBConnection");
+var dbPassword = builder.Configuration["Database:Password"];
+
+if (!string.IsNullOrEmpty(dbPassword))
+{
+    connectionString += $";Password={dbPassword}";
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DynamoCoinDBConnection")));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddControllers();
 

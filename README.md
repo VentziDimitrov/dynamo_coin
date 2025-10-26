@@ -111,14 +111,24 @@ Build and run images locally:
    cd dynamo_coin_backend
    ```
 
-2. Configure database connection in `appsettings.json`
+2. **Setup User Secrets** (Recommended - secure way to store sensitive data):
 
-3. Set OpenAI API key using User Secrets:
+   Option A - Use the automated script:
    ```bash
+   cd ..
+   ./setup-secrets.sh
+   ```
+
+   Option B - Manual setup:
+   ```bash
+   # Set database password
+   dotnet user-secrets set "Database:Password" "your-db-password-here"
+
+   # Set OpenAI API key
    dotnet user-secrets set "OpenAI:ApiKey" "your-api-key-here"
    ```
 
-4. Run migrations and start the API:
+3. Run migrations and start the API:
    ```bash
    dotnet ef database update
    dotnet run
@@ -208,9 +218,58 @@ dynamo_coin/
 │   ├── nginx.conf                 # Nginx configuration for production
 │   └── .dockerignore              # Docker ignore patterns
 ├── dynamo_coin_backend.Tests/     # Backend unit tests
-├── docker-compose.yml             # Docker orchestration
-└── .env.example                   # Environment variables template
+├── docker-compose.yml             # Docker orchestration (local build)
+├── docker-compose.prod.yml        # Docker orchestration (Docker Hub images)
+├── .env.example                   # Environment variables template
+├── setup-secrets.sh               # Script to configure user secrets
+└── build-and-push.sh              # Script to build and push Docker images
 ```
+
+## Security Configuration
+
+### Secrets Management
+
+This project uses **two different approaches** for managing sensitive data:
+
+**1. .NET User Secrets** (for local development without Docker):
+- Passwords and API keys are stored outside the project directory
+- Located in `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
+- Never committed to version control
+- Use `./setup-secrets.sh` script or `dotnet user-secrets` commands
+
+**2. Environment Variables** (for Docker):
+- Configured in `.env` file (not committed to git)
+- Copy `.env.example` to `.env` and fill in your values
+- Docker Compose reads these variables automatically
+
+### Required Secrets:
+
+| Secret | Description | Where Used |
+|--------|-------------|------------|
+| `Database:Password` | MSSQL SA password | User Secrets (local dev) |
+| `OpenAI:ApiKey` | OpenAI API key | User Secrets (local dev) |
+| `DB_SA_PASSWORD` | MSSQL SA password | .env (Docker) |
+| `OPENAI_API_KEY` | OpenAI API key | .env (Docker) |
+
+### Setup Instructions:
+
+**For Local Development:**
+```bash
+./setup-secrets.sh
+```
+
+**For Docker:**
+```bash
+cp .env.example .env
+nano .env  # Edit with your actual values
+```
+
+**Important Security Notes:**
+- ✅ `.env` is in `.gitignore` - never commit it!
+- ✅ User secrets are stored outside project directory
+- ✅ `appsettings.json` contains no passwords
+- ✅ Docker compose files use environment variable substitution
+- ⚠️  For production, use proper secrets management (Azure Key Vault, AWS Secrets Manager, etc.)
 
 ## Docker Details
 
