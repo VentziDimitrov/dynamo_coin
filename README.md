@@ -28,6 +28,76 @@ A full-stack cryptocurrency portfolio management application with real-time pric
 
 ## Quick Start
 
+### Option 1: Docker Hub (Easiest - Pre-built Images)
+
+Pull and run pre-built images from Docker Hub:
+
+1. **Prerequisites**:
+   - Docker and Docker Compose installed
+   - OpenAI API key
+
+2. **Setup**:
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+
+   # Edit .env and add your OpenAI API key
+   nano .env
+   ```
+
+3. **Run**:
+   ```bash
+   # Pull and start all services using production images
+   docker-compose -f docker-compose.prod.yml up -d
+
+   # View logs
+   docker-compose -f docker-compose.prod.yml logs -f
+
+   # Stop all services
+   docker-compose -f docker-compose.prod.yml down
+   ```
+
+4. **Access**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5260
+   - Database: localhost:1433
+
+### Option 2: Docker (Build Locally)
+
+Build and run images locally:
+
+1. **Prerequisites**:
+   - Docker and Docker Compose installed
+   - OpenAI API key
+
+2. **Setup**:
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+
+   # Edit .env and add your OpenAI API key
+   nano .env
+   ```
+
+3. **Run**:
+   ```bash
+   # Build and start all services (database, backend, frontend)
+   docker compose up -d
+
+   # View logs
+   docker compose logs -f
+
+   # Stop all services
+   docker compose down
+   ```
+
+4. **Access**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5260
+   - Database: localhost:1433
+
+### Option 3: Manual Setup
+
 ### Prerequisites
 - .NET 8 SDK
 - Node.js (v14+)
@@ -92,6 +162,8 @@ Frontend will be available at `http://localhost:3000`
 
 ## Testing
 
+### Local Testing
+
 Run backend tests:
 ```bash
 cd dynamo_coin_backend.Tests
@@ -104,6 +176,18 @@ cd dynamo_coin_portfolio
 npm test
 ```
 
+### Docker Testing
+
+Build and test in Docker:
+```bash
+# Build all images
+docker-compose build
+
+# Run tests in containers
+docker-compose run backend dotnet test
+docker-compose run frontend npm test
+```
+
 ## Project Structure
 
 ```
@@ -112,13 +196,89 @@ dynamo_coin/
 │   ├── Controllers/               # API controllers
 │   ├── Services/                  # Business logic & external APIs
 │   ├── Data/                      # EF Core DbContext & repositories
-│   └── Models/                    # Data models
+│   ├── Models/                    # Data models
+│   ├── Dockerfile                 # Backend Docker configuration
+│   └── .dockerignore              # Docker ignore patterns
 ├── dynamo_coin_portfolio/         # React frontend
-│   └── src/
-│       ├── components/            # React components
-│       ├── state/                 # Redux store & slices
-│       └── pages/                 # Main application pages
-└── dynamo_coin_backend.Tests/     # Backend unit tests
+│   ├── src/
+│   │   ├── components/            # React components
+│   │   ├── state/                 # Redux store & slices
+│   │   └── pages/                 # Main application pages
+│   ├── Dockerfile                 # Frontend Docker configuration
+│   ├── nginx.conf                 # Nginx configuration for production
+│   └── .dockerignore              # Docker ignore patterns
+├── dynamo_coin_backend.Tests/     # Backend unit tests
+├── docker-compose.yml             # Docker orchestration
+└── .env.example                   # Environment variables template
+```
+
+## Docker Details
+
+### Services
+
+The Docker Compose setup includes three services:
+
+1. **mssql**: MSSQL Server 2022 database
+   - Includes health checks and automatic initialization
+   - Data persisted in Docker volume
+
+2. **backend**: ASP.NET Core Web API
+   - Multi-stage build for optimized image size
+   - Auto-connects to database on startup
+   - Includes migrations and seeding
+
+3. **frontend**: React app served by Nginx
+   - Production-optimized build
+   - Configured with compression and caching
+   - Reverse proxy ready
+
+### Building and Pushing to Docker Hub
+
+To build and publish your own images to Docker Hub:
+
+```bash
+# Method 1: Using the automated script (easiest)
+./build-and-push.sh 1.0
+
+# Method 2: Manual build and push
+# Login to Docker Hub
+docker login
+
+# Build images
+docker build -t ventzidimitrov/dynamo_coin:backend-latest ./dynamo_coin_backend
+docker build -t ventzidimitrov/dynamo_coin:frontend-latest ./dynamo_coin_portfolio
+
+# Push to Docker Hub
+docker push ventzidimitrov/dynamo_coin:backend-latest
+docker push ventzidimitrov/dynamo_coin:frontend-latest
+```
+
+**Available Images on Docker Hub:**
+- `ventzidimitrov/dynamo_coin:backend-latest` - Backend API
+- `ventzidimitrov/dynamo_coin:frontend-latest` - React Frontend
+- `ventzidimitrov/dynamo_coin:backend-{version}` - Versioned backend
+- `ventzidimitrov/dynamo_coin:frontend-{version}` - Versioned frontend
+
+### Useful Docker Commands
+
+```bash
+# View running containers
+docker compose ps
+
+# View logs for specific service
+docker compose logs -f backend
+
+# Rebuild after code changes
+docker compose up -d --build
+
+# Stop and remove all containers, networks, and volumes
+docker compose down -v
+
+# Access backend shell
+docker compose exec backend bash
+
+# Access database
+docker compose exec mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Tribal4o!!!' -C
 ```
 
 ## License

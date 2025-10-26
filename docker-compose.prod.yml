@@ -1,0 +1,59 @@
+services:
+  # MSSQL Database
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dynamo_coin_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Tribal4o!!!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Tribal4o!!! -Q "SELECT 1" -C || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks:
+      - dynamo_network
+
+  # Backend API
+  backend:
+    image: ventzidimitrov/dynamo_coin:backend-latest
+    container_name: dynamo_coin_backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DynamoCoinDBConnection=Server=mssql;Initial Catalog=DynamoCoinDatabase;User Id=sa;Password=Tribal4o!!!;TrustServerCertificate=True
+      - OpenAI__ApiKey=${OPENAI_API_KEY}
+    ports:
+      - "5260:8080"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    networks:
+      - dynamo_network
+    restart: unless-stopped
+
+  # Frontend React App
+  frontend:
+    image: ventzidimitrov/dynamo_coin:frontend-latest
+    container_name: dynamo_coin_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dynamo_network
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+    driver: local
+
+networks:
+  dynamo_network:
+    driver: bridge
