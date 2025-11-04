@@ -28,41 +28,7 @@ A full-stack cryptocurrency portfolio management application with real-time pric
 
 ## Quick Start
 
-### Option 1: Docker Hub (Easiest - Pre-built Images)
-
-Pull and run pre-built images from Docker Hub:
-
-1. **Prerequisites**:
-   - Docker and Docker Compose installed
-   - OpenAI API key
-
-2. **Setup**:
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-
-   # Edit .env and add your OpenAI API key
-   nano .env
-   ```
-
-3. **Run**:
-   ```bash
-   # Pull and start all services using production images
-   docker-compose -f docker-compose.prod.yml up -d
-
-   # View logs
-   docker-compose -f docker-compose.prod.yml logs -f
-
-   # Stop all services
-   docker-compose -f docker-compose.prod.yml down
-   ```
-
-4. **Access**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5260
-   - Database: localhost:1433
-
-### Option 2: Docker (Build Locally)
+### Option 1: Docker
 
 Build and run images locally:
 
@@ -96,7 +62,7 @@ Build and run images locally:
    - Backend API: http://localhost:5260
    - Database: localhost:1433
 
-### Option 3: Manual Setup
+### Option 2: Manual Setup
 
 ### Prerequisites
 - .NET 8 SDK
