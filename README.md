@@ -20,10 +20,10 @@ A full-stack cryptocurrency portfolio management application with real-time pric
 - **Logging**: Serilog with rolling file logs
 
 ### Frontend
-- **Framework**: React 19 with Redux Toolkit
-- **State Management**: Redux + Zustand
+- **Framework**: React 19
+- **State Management**: Redux/Zustand
 - **HTTP Client**: Axios
-- **UI**: lucide-react icons
+- **UI**: lucide-react 
 - **Testing**: Jest + React Testing Library
 
 ## Quick Start
